@@ -705,37 +705,37 @@ class Parser {
   }
 
   /** List of styles exposed to the Dart UI framework. */
-  static final int _fontPartFont= 0;
-  static final int _fontPartVariant = 1;
-  static final int _fontPartWeight = 2;
-  static final int _fontPartSize = 3;
-  static final int _fontPartFamily = 4;
-  static final int _fontPartStyle = 5;
-  static final int _marginPartMargin = 6;
-  static final int _marginPartLeft = 7;
-  static final int _marginPartTop = 8;
-  static final int _marginPartRight = 9;
-  static final int _marginPartBottom = 10;
-  static final int _lineHeightPart = 11;
-  static final int _borderPartBorder = 12;
-  static final int _borderPartLeft = 13;
-  static final int _borderPartTop = 14;
-  static final int _borderPartRight = 15;
-  static final int _borderPartBottom = 16;
-  static final int _borderPartWidth = 17;
-  static final int _borderPartLeftWidth = 18;
-  static final int _borderPartTopWidth = 19;
-  static final int _borderPartRightWidth = 20;
-  static final int _borderPartBottomWidth = 21;
-  static final int _heightPart = 22;
-  static final int _widthPart = 23;
-  static final int _paddingPartPadding = 24;
-  static final int _paddingPartLeft = 25;
-  static final int _paddingPartTop = 26;
-  static final int _paddingPartRight = 27;
-  static final int _paddingPartBottom = 28;
+  static const int _fontPartFont= 0;
+  static const int _fontPartVariant = 1;
+  static const int _fontPartWeight = 2;
+  static const int _fontPartSize = 3;
+  static const int _fontPartFamily = 4;
+  static const int _fontPartStyle = 5;
+  static const int _marginPartMargin = 6;
+  static const int _marginPartLeft = 7;
+  static const int _marginPartTop = 8;
+  static const int _marginPartRight = 9;
+  static const int _marginPartBottom = 10;
+  static const int _lineHeightPart = 11;
+  static const int _borderPartBorder = 12;
+  static const int _borderPartLeft = 13;
+  static const int _borderPartTop = 14;
+  static const int _borderPartRight = 15;
+  static const int _borderPartBottom = 16;
+  static const int _borderPartWidth = 17;
+  static const int _borderPartLeftWidth = 18;
+  static const int _borderPartTopWidth = 19;
+  static const int _borderPartRightWidth = 20;
+  static const int _borderPartBottomWidth = 21;
+  static const int _heightPart = 22;
+  static const int _widthPart = 23;
+  static const int _paddingPartPadding = 24;
+  static const int _paddingPartLeft = 25;
+  static const int _paddingPartTop = 26;
+  static const int _paddingPartRight = 27;
+  static const int _paddingPartBottom = 28;
 
-  static final Map<String, int> _stylesToDart = const {
+  static const Map<String, int> _stylesToDart = const {
     'font':                 _fontPartFont,
     'font-family':          _fontPartFamily,
     'font-size':            _fontPartSize,
@@ -1205,6 +1205,7 @@ class Parser {
           }
         }
       }
+      break;
     }
 
     var term;
@@ -1480,9 +1481,9 @@ class ExpressionsProcessor {
     }
 
     return new FontExpression(_exprs.span,
-        size: fontSize.dynamic.font.size,
-        lineHeight: fontSize.dynamic.font.lineHeight,
-        family: fontFamily.dynamic.font.family);
+        size: (fontSize as dynamic).font.size,
+        lineHeight: (fontSize as dynamic).font.lineHeight,
+        family: (fontFamily as dynamic).font.family);
   }
 }
 

@@ -58,10 +58,9 @@ class Tokenizer extends CSSTokenizerBase {
             // Don't allow dot followed by a double (e.g,  '..1').
             return _errorToken();
           }
-        } else {
-          // It's really a dot.
-          return _finishToken(TokenKind.DOT);
         }
+        // It's really a dot.
+        return _finishToken(TokenKind.DOT);
       case TokenChar.LPAREN:
         return _finishToken(TokenKind.LPAREN);
       case TokenChar.RPAREN:
@@ -79,31 +78,31 @@ class Tokenizer extends CSSTokenizerBase {
       case TokenChar.PLUS:
         if (maybeEatDigit()) {
           return finishNumber();
-        } else {
-          return _finishToken(TokenKind.PLUS);
         }
+
+        return _finishToken(TokenKind.PLUS);
       case TokenChar.MINUS:
         if (maybeEatDigit()) {
           return finishNumber();
         } else if (TokenizerHelpers.isIdentifierStart(ch)) {
           return this.finishIdentifier(ch);
-        } else {
-          return _finishToken(TokenKind.MINUS);
         }
+
+        return _finishToken(TokenKind.MINUS);
       case TokenChar.GREATER:
         return _finishToken(TokenKind.GREATER);
       case TokenChar.TILDE:
         if (_maybeEatChar(TokenChar.EQUALS)) {
           return _finishToken(TokenKind.INCLUDES);          // ~=
-        } else {
-          return _finishToken(TokenKind.TILDE);
         }
+
+        return _finishToken(TokenKind.TILDE);
       case TokenChar.ASTERISK:
         if (_maybeEatChar(TokenChar.EQUALS)) {
           return _finishToken(TokenKind.SUBSTRING_MATCH);   // *=
-        } else {
-          return _finishToken(TokenKind.ASTERISK);
         }
+
+        return _finishToken(TokenKind.ASTERISK);
       case TokenChar.NAMESPACE:
         return _finishToken(TokenKind.NAMESPACE);
       case TokenChar.COLON:
@@ -121,37 +120,36 @@ class Tokenizer extends CSSTokenizerBase {
       case TokenChar.SLASH:
         if (_maybeEatChar(TokenChar.ASTERISK)) {
           return finishMultiLineComment();
-        } else {
-          return _finishToken(TokenKind.SLASH);
         }
+
+        return _finishToken(TokenKind.SLASH);
       case  TokenChar.LESS:      // <!--
         if (_maybeEatChar(TokenChar.BANG) &&
             _maybeEatChar(TokenChar.MINUS) &&
             _maybeEatChar(TokenChar.MINUS)) {
           return finishMultiLineComment();
-        } else {
-          return _finishToken(TokenKind.LESS);
         }
+
+        return _finishToken(TokenKind.LESS);
       case TokenChar.EQUALS:
         return _finishToken(TokenKind.EQUALS);
       case TokenChar.OR:
         if (_maybeEatChar(TokenChar.EQUALS)) {
           return _finishToken(TokenKind.DASH_MATCH);      // |=
-        } else {
-          return _finishToken(TokenKind.OR);
         }
+        return _finishToken(TokenKind.OR);
       case TokenChar.CARET:
         if (_maybeEatChar(TokenChar.EQUALS)) {
           return _finishToken(TokenKind.PREFIX_MATCH);    // ^=
-        } else {
-          return _finishToken(TokenKind.CARET);
         }
+
+        return _finishToken(TokenKind.CARET);
       case TokenChar.DOLLAR:
         if (_maybeEatChar(TokenChar.EQUALS)) {
           return _finishToken(TokenKind.SUFFIX_MATCH);    // $=
-        } else {
-          return _finishToken(TokenKind.DOLLAR);
         }
+
+        return _finishToken(TokenKind.DOLLAR);
       case TokenChar.BANG:
         Token tok = finishIdentifier(ch);
         return (tok == null) ? _finishToken(TokenKind.BANG) : tok;

@@ -232,7 +232,8 @@ class _Analyzer extends TreeVisitor {
       // TODO(jmesserly): get the node's span here
       world.error('data-bind attribute should be of the form '
           'data-bind="name:value"');
-      return;
+      // TODO(terry): Change to return; when b/5361 is fixed.
+      return null;
     }
 
     var attrInfo;
@@ -250,7 +251,8 @@ class _Analyzer extends TreeVisitor {
       _addEvent(elemInfo, 'keyUp', (elem, args) => '$value = $elem.value');
     } else {
       world.error('Unknown data-bind attribute: ${elem.tagName} - ${name}');
-      return;
+      // TODO(terry): Change to return; when b/5361 is fixed.
+      return null;
     }
     elemInfo.attributes[name] = attrInfo;
   }

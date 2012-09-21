@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+#import("dart:math", prefix:"Math");
+
 /**
  * Base for all style properties (e.g., Color, Font, Border, Margin, etc.)
  */
@@ -72,7 +74,7 @@ class Color implements _StyleProperty, ColorBase, Hashable {
    * internally be mapped to an int between '0' and '255' like the other color
    * components.
    */
-  Color.rgba(int red, int green, int blue, [num alpha]) :
+  Color.createRgba(int red, int green, int blue, [num alpha]) :
       this._argb = Color.convertToHexString(Color._clamp(red, 0, 255),
           Color._clamp(green, 0, 255),
           Color._clamp(blue, 0, 255),
@@ -99,7 +101,7 @@ class Color implements _StyleProperty, ColorBase, Hashable {
    * '0' (completely transparent foreground) to '1.0' (completely opaque
    * foreground).
    */
-  Color.hsla(num hueDegree, num saturationPercent, num lightnessPercent,
+  Color.createHsla(num hueDegree, num saturationPercent, num lightnessPercent,
       [num alpha]) :
           this._argb = new Hsla(Color._clamp(hueDegree, 0, 360) / 360,
           Color._clamp(saturationPercent, 0, 100) / 100,
@@ -223,10 +225,10 @@ class Color implements _StyleProperty, ColorBase, Hashable {
     return Color.convertToHexString(r, g, b, a);
   }
 
-  static final int _rgbCss = 1;
-  static final int _rgbaCss = 2;
-  static final int _hslCss = 3;
-  static final int _hslaCss = 4;
+  static const int _rgbCss = 1;
+  static const int _rgbaCss = 2;
+  static const int _hslCss = 3;
+  static const int _hslaCss = 4;
   /**
    * Parse CSS expressions of the from #rgb, rgb(r,g,b), rgba(r,g,b,a),
    * hsl(h,s,l), hsla(h,s,l,a) and SVG colors (e.g., darkSlateblue, etc.) and
@@ -284,7 +286,7 @@ class Color implements _StyleProperty, ColorBase, Hashable {
   /**
    * [hex] hexadecimal string to convert to scalar.
    * returns hexadecimal number as an integer.
-   * throws BadNumberFormatException if [hex] isn't a valid hexadecimal number.
+   * throws FormatException if [hex] isn't a valid hexadecimal number.
    */
   // TODO(terry): Should be part of Dart standard library see bug
   // <http://code.google.com/p/dart/issues/detail?id=2624>
@@ -303,7 +305,7 @@ class Color implements _StyleProperty, ColorBase, Hashable {
         // a..f
         val += (hexDigit - 87) * (1 << (4 * (len - 1 - i)));
       } else {
-        throw new BadNumberFormatException("Bad hexadecimal value");
+        throw new FormatException("Bad hexadecimal value");
       }
     }
 
@@ -378,154 +380,154 @@ class Color implements _StyleProperty, ColorBase, Hashable {
       Color._clamp(((1 - delta) * v + (delta * 255)).round(), 0, 255);
 
   // Predefined CSS colors see <http://www.w3.org/TR/css3-color/>
-  static final Color transparent = const Color.hex("00ffffff");  // Alpha 0.0
-  static final Color aliceBlue = const Color.hex("0f08ff");
-  static final Color antiqueWhite = const Color.hex("0faebd7");
-  static final Color aqua = const Color.hex("00ffff");
-  static final Color aquaMarine = const Color.hex("7fffd4");
-  static final Color azure = const Color.hex("f0ffff");
-  static final Color beige = const Color.hex("f5f5dc");
-  static final Color bisque = const Color.hex("ffe4c4");
-  static final Color black = const Color.hex("000000");
-  static final Color blanchedAlmond = const Color.hex("ffebcd");
-  static final Color blue = const Color.hex("0000ff");
-  static final Color blueViolet = const Color.hex("8a2be2");
-  static final Color brown = const Color.hex("a52a2a");
-  static final Color burlyWood = const Color.hex("deb887");
-  static final Color cadetBlue = const Color.hex("5f9ea0");
-  static final Color chartreuse = const Color.hex("7fff00");
-  static final Color chocolate = const Color.hex("d2691e");
-  static final Color coral = const Color.hex("ff7f50");
-  static final Color cornFlowerBlue = const Color.hex("6495ed");
-  static final Color cornSilk = const Color.hex("fff8dc");
-  static final Color crimson = const Color.hex("dc143c");
-  static final Color cyan = const Color.hex("00ffff");
-  static final Color darkBlue = const Color.hex("00008b");
-  static final Color darkCyan = const Color.hex("008b8b");
-  static final Color darkGoldenRod = const Color.hex("b8860b");
-  static final Color darkGray = const Color.hex("a9a9a9");
-  static final Color darkGreen = const Color.hex("006400");
-  static final Color darkGrey = const Color.hex("a9a9a9");
-  static final Color darkKhaki = const Color.hex("bdb76b");
-  static final Color darkMagenta = const Color.hex("8b008b");
-  static final Color darkOliveGreen = const Color.hex("556b2f");
-  static final Color darkOrange = const Color.hex("ff8c00");
-  static final Color darkOrchid = const Color.hex("9932cc");
-  static final Color darkRed = const Color.hex("8b0000");
-  static final Color darkSalmon = const Color.hex("e9967a");
-  static final Color darkSeaGreen = const Color.hex("8fbc8f");
-  static final Color darkSlateBlue = const Color.hex("483d8b");
-  static final Color darkSlateGray = const Color.hex("2f4f4f");
-  static final Color darkSlateGrey = const Color.hex("2f4f4f");
-  static final Color darkTurquoise = const Color.hex("00ced1");
-  static final Color darkViolet = const Color.hex("9400d3");
-  static final Color deepPink = const Color.hex("ff1493");
-  static final Color deepSkyBlue = const Color.hex("00bfff");
-  static final Color dimGray = const Color.hex("696969");
-  static final Color dimGrey = const Color.hex("696969");
-  static final Color dodgerBlue = const Color.hex("1e90ff");
-  static final Color fireBrick = const Color.hex("b22222");
-  static final Color floralWhite = const Color.hex("fffaf0");
-  static final Color forestGreen = const Color.hex("228b22");
-  static final Color fuchsia = const Color.hex("ff00ff");
-  static final Color gainsboro = const Color.hex("dcdcdc");
-  static final Color ghostWhite = const Color.hex("f8f8ff");
-  static final Color gold = const Color.hex("ffd700");
-  static final Color goldenRod = const Color.hex("daa520");
-  static final Color gray = const Color.hex("808080");
-  static final Color green = const Color.hex("008000");
-  static final Color greenYellow = const Color.hex("adff2f");
-  static final Color grey = const Color.hex("808080");
-  static final Color honeydew = const Color.hex("f0fff0");
-  static final Color hotPink = const Color.hex("ff69b4");
-  static final Color indianRed = const Color.hex("cd5c5c");
-  static final Color indigo = const Color.hex("4b0082");
-  static final Color ivory = const Color.hex("fffff0");
-  static final Color khaki = const Color.hex("f0e68c");
-  static final Color lavender = const Color.hex("e6e6fa");
-  static final Color lavenderBlush = const Color.hex("fff0f5");
-  static final Color lawnGreen = const Color.hex("7cfc00");
-  static final Color lemonChiffon = const Color.hex("fffacd");
-  static final Color lightBlue = const Color.hex("add8e6");
-  static final Color lightCoral = const Color.hex("f08080");
-  static final Color lightCyan = const Color.hex("e0ffff");
-  static final Color lightGoldenRodYellow = const Color.hex("fafad2");
-  static final Color lightGray = const Color.hex("d3d3d3");
-  static final Color lightGreen = const Color.hex("90ee90");
-  static final Color lightGrey = const Color.hex("d3d3d3");
-  static final Color lightPink = const Color.hex("ffb6c1");
-  static final Color lightSalmon = const Color.hex("ffa07a");
-  static final Color lightSeaGreen = const Color.hex("20b2aa");
-  static final Color lightSkyBlue = const Color.hex("87cefa");
-  static final Color lightSlateGray = const Color.hex("778899");
-  static final Color lightSlateGrey = const Color.hex("778899");
-  static final Color lightSteelBlue = const Color.hex("b0c4de");
-  static final Color lightYellow = const Color.hex("ffffe0");
-  static final Color lime = const Color.hex("00ff00");
-  static final Color limeGreen = const Color.hex("32cd32");
-  static final Color linen = const Color.hex("faf0e6");
-  static final Color magenta = const Color.hex("ff00ff");
-  static final Color maroon = const Color.hex("800000");
-  static final Color mediumAquaMarine = const Color.hex("66cdaa");
-  static final Color mediumBlue = const Color.hex("0000cd");
-  static final Color mediumOrchid = const Color.hex("ba55d3");
-  static final Color mediumPurple = const Color.hex("9370db");
-  static final Color mediumSeaGreen = const Color.hex("3cb371");
-  static final Color mediumSlateBlue = const Color.hex("7b68ee");
-  static final Color mediumSpringGreen = const Color.hex("00fa9a");
-  static final Color mediumTurquoise = const Color.hex("48d1cc");
-  static final Color mediumVioletRed = const Color.hex("c71585");
-  static final Color midnightBlue = const Color.hex("191970");
-  static final Color mintCream = const Color.hex("f5fffa");
-  static final Color mistyRose = const Color.hex("ffe4e1");
-  static final Color moccasin = const Color.hex("ffe4b5");
-  static final Color navajoWhite = const Color.hex("ffdead");
-  static final Color navy = const Color.hex("000080");
-  static final Color oldLace = const Color.hex("fdf5e6");
-  static final Color olive = const Color.hex("808000");
-  static final Color oliveDrab = const Color.hex("6b8e23");
-  static final Color orange = const Color.hex("ffa500");
-  static final Color orangeRed = const Color.hex("ff4500");
-  static final Color orchid = const Color.hex("da70d6");
-  static final Color paleGoldenRod = const Color.hex("eee8aa");
-  static final Color paleGreen = const Color.hex("98fb98");
-  static final Color paleTurquoise = const Color.hex("afeeee");
-  static final Color paleVioletRed = const Color.hex("db7093");
-  static final Color papayaWhip = const Color.hex("ffefd5");
-  static final Color peachPuff = const Color.hex("ffdab9");
-  static final Color peru = const Color.hex("cd85ef");
-  static final Color pink = const Color.hex("ffc0cb");
-  static final Color plum = const Color.hex("dda0dd");
-  static final Color powderBlue = const Color.hex("b0e0e6");
-  static final Color purple = const Color.hex("800080");
-  static final Color red = const Color.hex("ff0000");
-  static final Color rosyBrown = const Color.hex("bc8f8f");
-  static final Color royalBlue = const Color.hex("4169e1");
-  static final Color saddleBrown = const Color.hex("8b4513");
-  static final Color salmon = const Color.hex("fa8072");
-  static final Color sandyBrown = const Color.hex("f4a460");
-  static final Color seaGreen = const Color.hex("2e8b57");
-  static final Color seashell = const Color.hex("fff5ee");
-  static final Color sienna = const Color.hex("a0522d");
-  static final Color silver = const Color.hex("c0c0c0");
-  static final Color skyBlue = const Color.hex("87ceeb");
-  static final Color slateBlue = const Color.hex("6a5acd");
-  static final Color slateGray = const Color.hex("708090");
-  static final Color slateGrey = const Color.hex("708090");
-  static final Color snow = const Color.hex("fffafa");
-  static final Color springGreen = const Color.hex("00ff7f");
-  static final Color steelBlue = const Color.hex("4682b4");
-  static final Color tan = const Color.hex("d2b48c");
-  static final Color teal = const Color.hex("008080");
-  static final Color thistle = const Color.hex("d8bfd8");
-  static final Color tomato = const Color.hex("ff6347");
-  static final Color turquoise = const Color.hex("40e0d0");
-  static final Color violet = const Color.hex("ee82ee");
-  static final Color wheat = const Color.hex("f5deb3");
-  static final Color white = const Color.hex("ffffff");
-  static final Color whiteSmoke = const Color.hex("f5f5f5");
-  static final Color yellow = const Color.hex("ffff00");
-  static final Color yellowGreen = const Color.hex("9acd32");
+  static const Color transparent = const Color.hex("00ffffff");  // Alpha 0.0
+  static const Color aliceBlue = const Color.hex("0f08ff");
+  static const Color antiqueWhite = const Color.hex("0faebd7");
+  static const Color aqua = const Color.hex("00ffff");
+  static const Color aquaMarine = const Color.hex("7fffd4");
+  static const Color azure = const Color.hex("f0ffff");
+  static const Color beige = const Color.hex("f5f5dc");
+  static const Color bisque = const Color.hex("ffe4c4");
+  static const Color black = const Color.hex("000000");
+  static const Color blanchedAlmond = const Color.hex("ffebcd");
+  static const Color blue = const Color.hex("0000ff");
+  static const Color blueViolet = const Color.hex("8a2be2");
+  static const Color brown = const Color.hex("a52a2a");
+  static const Color burlyWood = const Color.hex("deb887");
+  static const Color cadetBlue = const Color.hex("5f9ea0");
+  static const Color chartreuse = const Color.hex("7fff00");
+  static const Color chocolate = const Color.hex("d2691e");
+  static const Color coral = const Color.hex("ff7f50");
+  static const Color cornFlowerBlue = const Color.hex("6495ed");
+  static const Color cornSilk = const Color.hex("fff8dc");
+  static const Color crimson = const Color.hex("dc143c");
+  static const Color cyan = const Color.hex("00ffff");
+  static const Color darkBlue = const Color.hex("00008b");
+  static const Color darkCyan = const Color.hex("008b8b");
+  static const Color darkGoldenRod = const Color.hex("b8860b");
+  static const Color darkGray = const Color.hex("a9a9a9");
+  static const Color darkGreen = const Color.hex("006400");
+  static const Color darkGrey = const Color.hex("a9a9a9");
+  static const Color darkKhaki = const Color.hex("bdb76b");
+  static const Color darkMagenta = const Color.hex("8b008b");
+  static const Color darkOliveGreen = const Color.hex("556b2f");
+  static const Color darkOrange = const Color.hex("ff8c00");
+  static const Color darkOrchid = const Color.hex("9932cc");
+  static const Color darkRed = const Color.hex("8b0000");
+  static const Color darkSalmon = const Color.hex("e9967a");
+  static const Color darkSeaGreen = const Color.hex("8fbc8f");
+  static const Color darkSlateBlue = const Color.hex("483d8b");
+  static const Color darkSlateGray = const Color.hex("2f4f4f");
+  static const Color darkSlateGrey = const Color.hex("2f4f4f");
+  static const Color darkTurquoise = const Color.hex("00ced1");
+  static const Color darkViolet = const Color.hex("9400d3");
+  static const Color deepPink = const Color.hex("ff1493");
+  static const Color deepSkyBlue = const Color.hex("00bfff");
+  static const Color dimGray = const Color.hex("696969");
+  static const Color dimGrey = const Color.hex("696969");
+  static const Color dodgerBlue = const Color.hex("1e90ff");
+  static const Color fireBrick = const Color.hex("b22222");
+  static const Color floralWhite = const Color.hex("fffaf0");
+  static const Color forestGreen = const Color.hex("228b22");
+  static const Color fuchsia = const Color.hex("ff00ff");
+  static const Color gainsboro = const Color.hex("dcdcdc");
+  static const Color ghostWhite = const Color.hex("f8f8ff");
+  static const Color gold = const Color.hex("ffd700");
+  static const Color goldenRod = const Color.hex("daa520");
+  static const Color gray = const Color.hex("808080");
+  static const Color green = const Color.hex("008000");
+  static const Color greenYellow = const Color.hex("adff2f");
+  static const Color grey = const Color.hex("808080");
+  static const Color honeydew = const Color.hex("f0fff0");
+  static const Color hotPink = const Color.hex("ff69b4");
+  static const Color indianRed = const Color.hex("cd5c5c");
+  static const Color indigo = const Color.hex("4b0082");
+  static const Color ivory = const Color.hex("fffff0");
+  static const Color khaki = const Color.hex("f0e68c");
+  static const Color lavender = const Color.hex("e6e6fa");
+  static const Color lavenderBlush = const Color.hex("fff0f5");
+  static const Color lawnGreen = const Color.hex("7cfc00");
+  static const Color lemonChiffon = const Color.hex("fffacd");
+  static const Color lightBlue = const Color.hex("add8e6");
+  static const Color lightCoral = const Color.hex("f08080");
+  static const Color lightCyan = const Color.hex("e0ffff");
+  static const Color lightGoldenRodYellow = const Color.hex("fafad2");
+  static const Color lightGray = const Color.hex("d3d3d3");
+  static const Color lightGreen = const Color.hex("90ee90");
+  static const Color lightGrey = const Color.hex("d3d3d3");
+  static const Color lightPink = const Color.hex("ffb6c1");
+  static const Color lightSalmon = const Color.hex("ffa07a");
+  static const Color lightSeaGreen = const Color.hex("20b2aa");
+  static const Color lightSkyBlue = const Color.hex("87cefa");
+  static const Color lightSlateGray = const Color.hex("778899");
+  static const Color lightSlateGrey = const Color.hex("778899");
+  static const Color lightSteelBlue = const Color.hex("b0c4de");
+  static const Color lightYellow = const Color.hex("ffffe0");
+  static const Color lime = const Color.hex("00ff00");
+  static const Color limeGreen = const Color.hex("32cd32");
+  static const Color linen = const Color.hex("faf0e6");
+  static const Color magenta = const Color.hex("ff00ff");
+  static const Color maroon = const Color.hex("800000");
+  static const Color mediumAquaMarine = const Color.hex("66cdaa");
+  static const Color mediumBlue = const Color.hex("0000cd");
+  static const Color mediumOrchid = const Color.hex("ba55d3");
+  static const Color mediumPurple = const Color.hex("9370db");
+  static const Color mediumSeaGreen = const Color.hex("3cb371");
+  static const Color mediumSlateBlue = const Color.hex("7b68ee");
+  static const Color mediumSpringGreen = const Color.hex("00fa9a");
+  static const Color mediumTurquoise = const Color.hex("48d1cc");
+  static const Color mediumVioletRed = const Color.hex("c71585");
+  static const Color midnightBlue = const Color.hex("191970");
+  static const Color mintCream = const Color.hex("f5fffa");
+  static const Color mistyRose = const Color.hex("ffe4e1");
+  static const Color moccasin = const Color.hex("ffe4b5");
+  static const Color navajoWhite = const Color.hex("ffdead");
+  static const Color navy = const Color.hex("000080");
+  static const Color oldLace = const Color.hex("fdf5e6");
+  static const Color olive = const Color.hex("808000");
+  static const Color oliveDrab = const Color.hex("6b8e23");
+  static const Color orange = const Color.hex("ffa500");
+  static const Color orangeRed = const Color.hex("ff4500");
+  static const Color orchid = const Color.hex("da70d6");
+  static const Color paleGoldenRod = const Color.hex("eee8aa");
+  static const Color paleGreen = const Color.hex("98fb98");
+  static const Color paleTurquoise = const Color.hex("afeeee");
+  static const Color paleVioletRed = const Color.hex("db7093");
+  static const Color papayaWhip = const Color.hex("ffefd5");
+  static const Color peachPuff = const Color.hex("ffdab9");
+  static const Color peru = const Color.hex("cd85ef");
+  static const Color pink = const Color.hex("ffc0cb");
+  static const Color plum = const Color.hex("dda0dd");
+  static const Color powderBlue = const Color.hex("b0e0e6");
+  static const Color purple = const Color.hex("800080");
+  static const Color red = const Color.hex("ff0000");
+  static const Color rosyBrown = const Color.hex("bc8f8f");
+  static const Color royalBlue = const Color.hex("4169e1");
+  static const Color saddleBrown = const Color.hex("8b4513");
+  static const Color salmon = const Color.hex("fa8072");
+  static const Color sandyBrown = const Color.hex("f4a460");
+  static const Color seaGreen = const Color.hex("2e8b57");
+  static const Color seashell = const Color.hex("fff5ee");
+  static const Color sienna = const Color.hex("a0522d");
+  static const Color silver = const Color.hex("c0c0c0");
+  static const Color skyBlue = const Color.hex("87ceeb");
+  static const Color slateBlue = const Color.hex("6a5acd");
+  static const Color slateGray = const Color.hex("708090");
+  static const Color slateGrey = const Color.hex("708090");
+  static const Color snow = const Color.hex("fffafa");
+  static const Color springGreen = const Color.hex("00ff7f");
+  static const Color steelBlue = const Color.hex("4682b4");
+  static const Color tan = const Color.hex("d2b48c");
+  static const Color teal = const Color.hex("008080");
+  static const Color thistle = const Color.hex("d8bfd8");
+  static const Color tomato = const Color.hex("ff6347");
+  static const Color turquoise = const Color.hex("40e0d0");
+  static const Color violet = const Color.hex("ee82ee");
+  static const Color wheat = const Color.hex("f5deb3");
+  static const Color white = const Color.hex("ffffff");
+  static const Color whiteSmoke = const Color.hex("f5f5f5");
+  static const Color yellow = const Color.hex("ffff00");
+  static const Color yellowGreen = const Color.hex("9acd32");
 }
 
 
@@ -640,7 +642,7 @@ class Rgba implements _StyleProperty, ColorBase, Hashable {
     value += b;
   }
 
-  Color get color => new Color.rgba(r, g, b, a);
+  Color get color => new Color.createRgba(r, g, b, a);
   Hsla get hsla => new Hsla.fromRgba(this);
 
   Rgba darker(num amount) => Color._createNewTintShadeFromRgba(this, -amount);
@@ -790,7 +792,7 @@ class Hsla implements _StyleProperty, ColorBase, Hashable {
 
   int get argbValue => Color.hexToInt(this.toHexArgbString());
 
-  Color get color => new Color.hsla(_h, _s, _l, _a);
+  Color get color => new Color.createHsla(_h, _s, _l, _a);
   Rgba get rgba => new Rgba.fromHsla(this);
 
   Hsla darker(num amount) =>
@@ -846,60 +848,60 @@ class Border implements _StyleProperty {
 /** Font style constants. */
 class FontStyle {
   /** Font style [normal] default. */
-  static final String normal = "normal";
+  static const String normal = "normal";
   /**
    * Font style [italic] use explicity crafted italic font otherwise inclined
    * on the fly like oblique.
    */
-  static final String italic = "italic";
+  static const String italic = "italic";
   /**
    * Font style [oblique] is rarely used. The normal style of a font is inclined
    * on the fly to the right by 8-12 degrees.
    */
-  static final String oblique = "oblique";
+  static const String oblique = "oblique";
 }
 
 
 /** Font variant constants. */
 class FontVariant {
   /** Font style [normal] default. */
-  static final String normal = "normal";
+  static const String normal = "normal";
   /** Font variant [smallCaps]. */
-  static final String smallCaps = "small-caps";
+  static const String smallCaps = "small-caps";
 }
 
 
 /** Font weight constants values 100, 200, 300, 400, 500, 600, 700, 800, 900. */
 class FontWeight {
   /** Font weight normal [default] */
-  static final int normal = 400;
+  static const int normal = 400;
   /** Font weight bold */
-  static final int bold = 700;
+  static const int bold = 700;
 
-  static final int wt100 = 100;
-  static final int wt200 = 200;
-  static final int wt300 = 300;
-  static final int wt400 = 400;
-  static final int wt500 = 500;
-  static final int wt600 = 600;
-  static final int wt700 = 700;
-  static final int wt800 = 800;
-  static final int wt900 = 900;
+  static const int wt100 = 100;
+  static const int wt200 = 200;
+  static const int wt300 = 300;
+  static const int wt400 = 400;
+  static const int wt500 = 500;
+  static const int wt600 = 600;
+  static const int wt700 = 700;
+  static const int wt800 = 800;
+  static const int wt900 = 900;
 }
 
 
 /** Generic font family names. */
 class FontGeneric {
   /** Generic family sans-serif font (w/o serifs). */
-  static final String sansSerif = "sans-serif";
+  static const String sansSerif = "sans-serif";
   /** Generic family serif font. */
-  static final String serif = "serif";
+  static const String serif = "serif";
   /** Generic family fixed-width font. */
-  static final monospace = "monospace";
+  static const monospace = "monospace";
   /** Generic family emulate handwriting font. */
-  static final String cursive = "cursive";
+  static const String cursive = "cursive";
   /** Generic family decorative font. */
-  static final String fantasy = "fantasy";
+  static const String fantasy = "fantasy";
 }
 
 
@@ -913,50 +915,50 @@ class FontGeneric {
  */
 class FontFamily {
   /** Sans-Serif font for Windows similar to Helvetica on Mac bold/italic. */
-  static final String arial = "arial";
+  static const String arial = "arial";
   /** Sans-Serif font for Windows less common already bolded. */
-  static final String arialBlack = "arial black";
+  static const String arialBlack = "arial black";
   /** Sans-Serif font for Mac since 1984, similar to Arial/Helvetica. */
-  static final String geneva = "geneva";
+  static const String geneva = "geneva";
   /** Sans-Serif font for Windows most readable sans-serif font for displays. */
-  static final String verdana = "verdana";
+  static const String verdana = "verdana";
   /** Sans-Serif font for Mac since 1984 is identical to Arial. */
-  static final String helvetica = "helvetica";
+  static const String helvetica = "helvetica";
 
   /** Serif font for Windows traditional font with “old-style” numerals. */
-  static final String georgia = "georgia";
+  static const String georgia = "georgia";
   /**
    * Serif font for Mac. PCs may have the non-scalable Times use Times New
    * Roman instead.  Times is more compact than Times New Roman.
    */
-  static final String times = "times";
+  static const String times = "times";
   /**
    * Serif font for Windows most common serif font and default serif font for
    * most browsers.
    */
-  static final String timesNewRoman = "times new roman";
+  static const String timesNewRoman = "times new roman";
 
   /**
    * Monospace font for Mac/Windows most common. Scalable on Mac not scalable
    * on Windows.
    */
-  static final String courier = "courier";
+  static const String courier = "courier";
   /** Monospace font for Mac/Windows scalable on both platforms. */
-  static final String courierNew = "courier new";
+  static const String courierNew = "courier new";
 
   /** Cursive font for Windows and default cursive font for IE. */
-  static final String comicSansMs = "comic sans ms";
+  static const String comicSansMs = "comic sans ms";
   /** Cursive font for Mac on Macs 2000 and newer. */
-  static final String textile = "textile";
+  static const String textile = "textile";
   /** Cursive font for older Macs. */
-  static final String appleChancery = "apple chancery";
+  static const String appleChancery = "apple chancery";
   /** Cursive font for some PCs. */
-  static final String zaphChancery = "zaph chancery";
+  static const String zaphChancery = "zaph chancery";
 
   /** Fantasy font on most Mac/Windows/Linux platforms. */
-  static final String impact = "impact";
+  static const String impact = "impact";
   /** Fantasy font for Windows. */
-  static final String webdings = "webdings";
+  static const String webdings = "webdings";
 }
 
 class LineHeight {
@@ -971,28 +973,28 @@ class LineHeight {
  */
 class Font implements _StyleProperty {
   /** Collection of most common sans-serif fonts in order. */
-  static final List<String> sansSerif = const [FontFamily.arial,
+  static const List<String> sansSerif = const [FontFamily.arial,
                                                FontFamily.verdana,
                                                FontFamily.geneva,
                                                FontFamily.helvetica,
                                                FontGeneric.sansSerif];
 
   /** Collection of most common serif fonts in order. */
-  static final List<String> serif = const [FontFamily.georgia,
+  static const List<String> serif = const [FontFamily.georgia,
                                            FontFamily.timesNewRoman,
                                            FontFamily.times,
                                            FontGeneric.serif];
   /** Collection of most common monospace fonts in order. */
-  static final List<String> monospace = const [FontFamily.courierNew,
+  static const List<String> monospace = const [FontFamily.courierNew,
                                                FontFamily.courier,
                                                FontGeneric.monospace];
   /** Collection of most common cursive fonts in order. */
-  static final List<String> cursive = const [FontFamily.textile,
+  static const List<String> cursive = const [FontFamily.textile,
                                              FontFamily.appleChancery,
                                              FontFamily.zaphChancery,
                                              FontGeneric.fantasy];
   /** Collection of most common fantasy fonts in order. */
-  static final List<String> fantasy = const [FontFamily.comicSansMs,
+  static const List<String> fantasy = const [FontFamily.comicSansMs,
                                              FontFamily.impact,
                                              FontFamily.webdings,
                                              FontGeneric.fantasy];
