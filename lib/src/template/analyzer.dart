@@ -16,7 +16,6 @@ import 'files.dart';
 import 'utils.dart';
 import 'world.dart';
 
-
 /**
  * Finds custom elements in this file and the list of referenced files with
  * component declarations. This is the first pass of analysis on a file.
@@ -118,6 +117,10 @@ class _Analyzer extends TreeVisitor {
 
   TemplateInfo _createTemplateInfo(Element node) {
     assert(node.tagName == 'template');
+    return createTemplateInfo(node);
+  }
+
+  TemplateInfo createTemplateInfo(Element node) {
     var instantiate = node.attributes['instantiate'];
     var iterate = node.attributes['iterate'];
 
@@ -125,8 +128,7 @@ class _Analyzer extends TreeVisitor {
     // Dart is to be forgiving.
     if (instantiate != null && iterate != null) {
       // TODO(jmesserly): get the node's span here
-      world.warning('<template> element cannot have iterate and instantiate '
-          'attributes');
+      world.warning('Template cannot have iterate and instantiate attributes.');
       return null;
     }
 
@@ -139,8 +141,8 @@ class _Analyzer extends TreeVisitor {
       // as it exists in MDV. Right now we ignore it, but we provide support for
       // data binding everywhere.
       if (instantiate != '') {
-        world.warning('<template instantiate> either have  '
-          ' form <template instantiate="if condition" where "condition" is a'
+        world.warning('Template instantiate attribute either have the'
+          ' form instantiate="if condition" where "condition" is a'
           ' binding that determines if the contents of the template will be'
           ' inserted and displayed.');
       }
@@ -149,7 +151,7 @@ class _Analyzer extends TreeVisitor {
       if (match != null) {
         return new TemplateInfo(loopVariable: match[1], loopItems: match[2]);
       }
-      world.warning('<template> iterate must be of the form: '
+      world.warning('Template iterate attribute must be of the form: '
           'iterate="variable in list", where "variable" is your variable name'
           ' and "list" is the list of items.');
     }
@@ -164,6 +166,8 @@ class _Analyzer extends TreeVisitor {
     } else if (name == 'data-action') {
       _readDataActionAttribute(elemInfo, value);
       return;
+    } else if (name == 'template') {
+      elemInfo.templateInfo = createTemplateInfo(elem);
     }
 
     if (name == 'data-bind') {

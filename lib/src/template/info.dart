@@ -144,6 +144,9 @@ class ElementInfo {
   // TODO(sigmund): move this to Emitter?
   String elemField;
 
+  /** Element has a template attribute. */
+  TemplateInfo templateInfo;
+
   /**
    * Whether code generators need to create a field to store a reference to this
    * element. This is typically true whenever we need to access the element
@@ -200,9 +203,8 @@ class ElementInfo {
         events = new SplayTreeMap<String, List<EventInfo>>(),
         values = new SplayTreeMap<String, String>();
 
-
   /** Whether the template element has `iterate="... in ...". */
-  bool get hasIterate => false;
+  bool get hasIterate => templateInfo != null ? templateInfo.hasIterate : false;
 
   /** Whether the template element has an `instantiate="if ..."` conditional. */
   bool get hasIfCondition => false;
@@ -296,6 +298,19 @@ class TemplateInfo extends ElementInfo {
   bool get hasIterate => loopVariable != null;
 
   bool get hasIfCondition => ifCondition != null;
+
+  void merge(ElementInfo elemInfo) {
+    assert(elementId == null);
+    elementId = elemInfo.elementId;
+    elemField = elemInfo.elemField;
+    componentName = elemInfo.componentName;
+    contentBinding = elemInfo.contentBinding;
+    contentExpression = elemInfo.contentExpression;
+    stopperName = elemInfo.stopperName;
+    attributes = elemInfo.attributes;
+    events = elemInfo.events;
+    values = elemInfo.values;
+  }
 
   String toString() => '#<TemplateInfo '
       'ifCondition: $ifCondition, '
