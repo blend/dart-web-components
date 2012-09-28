@@ -600,6 +600,120 @@ class ListElementEmitter extends Emitter<TemplateInfo> {
   }
 }
 
+class RecursiveHTMLEmitter extends TreeVisitor {
+  const String _INDENTS =
+      "                                                                        "
+      "                                                                      ";
+  final FileInfo _info;
+  final CodePrinter initialPage;
+  final List<CodePrinter> htmlFragments;
+  CodePrinter currPrinter;
+  var parent;
+  int indent;
+
+  RecursiveHTMLEmitter(this._info)
+      : initialPage = new CodePrinter(), htmlFragments = [], indent = 0 {
+    currPrinter = initialPage;
+  }
+
+  void visitElement(Element elem) {
+    var elemInfo = _info.elements[elem];
+    if (elemInfo == null) {
+      super.visitElement(elem);
+      return;
+    }
+
+    if (parent != null && elem.parent != parent) {
+      indent++;
+      parent = elem.parent;
+    } else if (parent == null) {
+      indent++;
+      parent = elem;
+    }
+
+    String left = _INDENTS.substring(0, indent * 2);
+    String html = "$left'<${elem.tagName}${_attributesToString(elem)}>'";
+
+    CodePrinter prevFragment;
+    if (elemInfo.fragmentChild) {
+      prevFragment = currPrinter;
+      currPrinter = new CodePrinter();
+      currPrinter.add("String _fragment${elemInfo.elemField}() =>");
+      currPrinter.add(html);
+
+      var parentPrinter = (htmlFragments.length == 0) ?
+          initialPage : htmlFragments.last();
+      parentPrinter.add("$left'\${_fragment${elemInfo.elemField}()}'");
+
+      htmlFragments.add(currPrinter);
+    } else {
+      initialPage.add(html);
+      prevFragment = currPrinter;
+      currPrinter = initialPage;
+    }
+
+    // Invoke super to visit children.
+    super.visitElement(elem);
+
+    if (elem == parent) {
+      indent--;
+      parent = elem.parent;
+    }
+
+    // void elements don't have an end tag.
+//    if (voidElements.indexOf(elem.tagName) < 0) {
+      currPrinter.add("$left'</${elem.tagName}>'");
+//    }
+
+    currPrinter = prevFragment;
+  }
+
+  visitText(Text node) {
+    var textValue = node.value.trim();
+    if (!textValue.isEmpty()) {
+      String left = _INDENTS.substring(0, (indent + 1) * 2);
+      currPrinter.add("$left'${node.value}'");
+    }
+  }
+
+  String allHtmlCodeFragments() {
+    for (var codeFrag in htmlFragments) {
+      codeFrag.add(";");
+    }
+
+    StringBuffer allCode = new StringBuffer();
+    for (var codeFrag in htmlFragments) {
+      allCode.add(codeFrag.toString());
+    }
+
+    return allCode.toString();
+  }
+
+  String _attributesToString(Element elem) {
+    var attrs = elem.attributes;
+    if (attrs.length > 0) {
+      StringBuffer str = new StringBuffer();
+      attrs.forEach((key, v) {
+        str.add(' $key="$v"');
+      });
+
+      return str.toString();
+    }
+
+    return "";
+  }
+}
+
+class IntialPageEmitter extends RecursiveHTMLEmitter {
+  IntialPageEmitter(FileInfo info) : super(info);
+
+  String run(Document document) {
+    visit(document);
+
+    return initialPage.toString();
+  }
+}
+
 /**
  * An visitor that applies [ElementFieldEmitter], [EventListenerEmitter],
  * [DataBindingEmitter], [DataValueEmitter], [ConditionalEmitter], and
@@ -741,12 +855,16 @@ class MainPageEmitter extends RecursiveEmitter {
   String run(Document document) {
     visit(document);
 
+    var htmlEmitter = new IntialPageEmitter(_info);
+    var intialPage = htmlEmitter.run(document);
+
     return new CodePrinter().add(
         codegen.mainDartCode(
           _info,
           _context.declarations.formatString(0),
           _context.createdMethod.formatString(1),
           _context.insertedMethod.formatString(1),
-          document.body.innerHTML.trim())).formatString();
+          htmlEmitter.allHtmlCodeFragments(),
+          intialPage)).formatString();
   }
 }

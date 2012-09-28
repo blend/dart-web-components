@@ -68,6 +68,7 @@ String mainDartCode(
     String topLevelFields,
     String fieldInitializers,
     String modelBinding,
+    String htmlFragments,
     String initialPage) => """
 ${header(info.filename, info.libraryName)}
 
@@ -92,9 +93,10 @@ $modelBinding
   document.body.nodes.add(_root);
 }
 
-final String _INITIAL_PAGE = r'''
-  $initialPage
-''';
+$htmlFragments
+
+final String _INITIAL_PAGE = 
+$initialPage;
 """;
 
 /** 
