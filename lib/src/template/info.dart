@@ -144,6 +144,9 @@ class ElementInfo {
   // TODO(sigmund): move this to Emitter?
   String elemField;
 
+  /** if true element is a fragment created with fragment function. */
+  bool fragmentChild;
+
   /** Element has a template attribute. */
   TemplateInfo templateInfo;
 

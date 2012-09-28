@@ -76,7 +76,23 @@ class _Analyzer extends TreeVisitor {
 
     _bindCustomElement(node, info);
 
+    // Mark any children elements under an iterate at any depth.
+    bool iterator = false;
+    if (info.needsHtmlId) {
+      if (info.hasIterate) {
+        _iterateNesting++;
+        iterator = true;
+      }
+      info.fragmentChild = _iterateNesting > 0;
+    }
+
+    // Invoke super to visit children.
     super.visitElement(node);
+
+    // Was in an iterator.
+    if (iterator) {
+      _iterateNesting--;
+    }
 
     // Need to get to this element at codegen time; for template, data binding,
     // or event hookup.  We need an HTML id attribute for this node.
