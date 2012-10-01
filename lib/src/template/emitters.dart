@@ -539,7 +539,9 @@ class ListElementEmitter extends Emitter<TemplateInfo> {
     var id = elemInfo.idAsIdentifier;
     if (parentInfo == null) {
       context.createdMethod.add('''
-          _childTemplate$id = $id.clone(true);
+          var ${id}_parent = new Element.html(_fragment$id());
+          ${id}_parent.nodes.clear();
+          $id.nodes.add(${id}_parent);
           _removeChild$id = [];
           $id = $id.parent;
           $id.nodes.clear();
@@ -562,13 +564,14 @@ class ListElementEmitter extends Emitter<TemplateInfo> {
     // TODO(jmesserly): this should use fine grained updates.
     // TODO(jmesserly): watcher should give us the list, not a boolean.
     context.insertedMethod.add('''
-        _stopWatcher$id = bind(() => ${elemInfo.loopItems}, (e) {
+        _stopWatcher$id = watchAndInvoke(() => ${elemInfo.loopItems}, (e) {
           $id.nodes.clear();
           for (var remover in _removeChild$id) remover();
           _removeChild$id.clear();
           for (var ${elemInfo.loopVariable} in ${elemInfo.loopItems}) {
-            var $childElementName = _childTemplate$id.clone(true);
-            manager.expandDeclarations($childElementName);
+            var ${id}_parent = new Element.html(_fragment$id());
+            ${id}_parent.nodes.clear();
+            ${id}.nodes.add(${id}_parent);
     ''');
 
     context.insertedMethod
@@ -672,9 +675,15 @@ class RecursiveHTMLEmitter extends TreeVisitor {
     var textValue = node.value.trim();
     if (!textValue.isEmpty()) {
       String left = _INDENTS.substring(0, (indent + 1) * 2);
-      currPrinter.add("$left'${node.value}'");
+      currPrinter.add("$left'''${node.value}'''");
     }
   }
+
+  visitDocumentType(DocumentType node) {
+    String left = _INDENTS.substring(0, (indent + 1) * 2);
+    currPrinter.add("'${left}$node'");
+  }
+
 
   String allHtmlCodeFragments() {
     for (var codeFrag in htmlFragments) {
