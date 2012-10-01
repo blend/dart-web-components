@@ -145,10 +145,10 @@ class ElementInfo {
   String elemField;
 
   /** if true element is a fragment created with fragment function. */
-  bool fragmentChild;
+  bool fragmentChild = false;
 
   /** Element has a template attribute. */
-  TemplateInfo templateInfo;
+  TemplateInfo templateInfo = null;
 
   /**
    * Whether code generators need to create a field to store a reference to this
@@ -182,13 +182,13 @@ class ElementInfo {
   String stopperName;
 
   /** Collected information for attributes, if any. */
-  final Map<String, AttributeInfo> attributes;
+  Map<String, AttributeInfo> attributes;
 
   /** Collected information for UI events on the corresponding element. */
-  final Map<String, List<EventInfo>> events;
+  Map<String, List<EventInfo>> events;
 
   /** Collected information about `data-value="name:value"` expressions. */
-  final Map<String, String> values;
+  Map<String, String> values;
 
   /**
    * Format [elementId] in camel case, suitable for using as a Dart identifier.
@@ -215,6 +215,8 @@ class ElementInfo {
   String toString() => '#<ElementInfo '
       'elementId: $elementId, '
       'elemField: $elemField, '
+//      'fragmentChild: $fragmentChild'
+//      'templateInfo: ${templateInfo != null ? "true" : "false"}'
       'needsHtmlId: $needsHtmlId, '
       'component: $component, '
       'hasIterate: $hasIterate, '
@@ -306,7 +308,8 @@ class TemplateInfo extends ElementInfo {
     assert(elementId == null);
     elementId = elemInfo.elementId;
     elemField = elemInfo.elemField;
-    componentName = elemInfo.componentName;
+    fragmentChild = elemInfo.fragmentChild;
+    component = elemInfo.component;
     contentBinding = elemInfo.contentBinding;
     contentExpression = elemInfo.contentExpression;
     stopperName = elemInfo.stopperName;

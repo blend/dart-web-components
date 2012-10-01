@@ -49,11 +49,13 @@ class _Analyzer extends TreeVisitor {
   final FileInfo result;
   int _uniqueId = 0;
 
+  /** Iterator nesting level. */
+  int _iterateNesting = 0;
+
   _Analyzer(this.result);
 
   void visitElement(Element node) {
     ElementInfo info = null;
-
     if (node.tagName == 'script') {
       // We already extracted script tags in previous phase.
       return;
