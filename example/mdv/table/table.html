@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Table Sample</title>
+<style>
+
+tr {
+  height: 40px;
+}
+
+td {
+  width: 40px;
+  border: 2px solid black;
+  text-align: center;
+}
+
+li > .square:not(.taken) {
+  border: 2px solid white;
+}
+
+.square:not(.taken):hover {
+  border: 2px solid #00FF00;
+}
+
+.square.taken:hover {
+  border: 2px solid #FF0000;
+}
+
+</style>
+<script type="application/dart">
+String currentPlayer = "X";
+Board gameBoard = new Board();
+
+class Square {
+  String value;
+
+  Square() : value = '';
+}
+
+class Board {
+  List<List<Square>> board;
+
+  Board() : board = [
+      [new Square(), new Square(), new Square()],
+      [new Square(), new Square(), new Square()],
+      [new Square(), new Square(), new Square()],
+  ];
+
+  bool get won => winner != '';
+  
+  String get winner() {
+    String winner;
+    winner = _rowWinner();
+    if (winner == '') {
+      winner = _columnWinner();
+      if (winner == '') {
+        winner = _diagonalWinner();
+      }
+    }
+
+    return winner;
+  }
+
+  String _rowWinner() {
+    for (var row in board) {
+      if ((row[0].value == row[1].value && row[0].value == row[2].value) &&
+          row[0].value != '') {
+        return row[0].value;
+      }
+    }
+    return '';
+  }
+
+  String _columnWinner() {
+    for (int i = 0; i < 3; i++) {
+      if ((board[0][i].value == board[1][i].value &&
+          board[0][i].value == board[2][i].value) && board[0][i].value != '') {
+        return board[0][i].value;
+      }
+    }
+    return '';
+  }
+
+  String _diagonalWinner() {
+    if ((board[0][0].value == board[1][1].value &&
+        board[0][0].value == board[2][2].value) && board[0][0].value != '') {
+      return board[0][0].value;
+    }
+    if ((board[0][2].value == board[1][1].value &&
+        board[0][2].value == board[2][0].value) && board[0][2].value != '') {
+      return board[0][2].value;
+    }
+    return '';
+  }
+
+  void makeMove(square) {
+    if (!won && square.value == '') {
+      square.value = currentPlayer;
+      currentPlayer = currentPlayer == 'X' ? 'O' : 'X';
+    }
+  }
+
+  void reset() {
+    for (var row in board) {
+      for (var square in row) {
+        square.value = '';
+      }
+    }
+    currentPlayer = 'X';
+  }
+}
+
+String _squareTaken(spot) {
+  return spot.value == '' ? 'taken' : '';
+}
+
+main() {
+  init();
+}
+</script>
+</head>
+<body>
+  <template instantiate>
+    <span>It's {{ currentPlayer }}'s turn</span>
+      <table>
+        <tbody template iterate="row in gameBoard.board">
+        <tr template iterate="spot in row">
+          <td class="square {{_squareTaken(spot)}}" data-action="click:gameBoard.makeMove(spot)">{{spot.value}}</td>
+        </tr>
+        </tbody>
+      </table>
+    <span hidden="{{!gameBoard.won}}" style="padding-right:4px;">{{gameBoard.winner}} wins!</span>
+    <a href="#"  data-action="click:gameBoard.reset()">Play Again</a>
+<!-- TODO(terry): Make the original work.
+    <ul>
+      <template iterate="row in gameBoard.board">
+          <template iterate="spot in row">
+            <li class="square {{_squareTaken(spot)}}" data-action="click:gameBoard.makeMove(spot)">{{spot.value}}</li>
+          </template>
+      </template>
+    </ul>
+-->
+    <template instantiate>
+      <ul template iterate="row in gameBoard.board">
+        <li style="padding-top:4px;padding-bottom:4px;" template iterate="spot in row">
+          <span style="padding:2px;" class="square {{_squareTaken(spot)}}" data-action="click:gameBoard.makeMove(spot)">
+            {{spot.value}} ,
+          </span>
+        </li>
+      </ul>
+    </template>
+  </template>
+</body>
+</html>
