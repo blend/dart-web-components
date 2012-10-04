@@ -148,7 +148,10 @@ class ElementInfo {
   bool fragmentChild = false;
 
   /** Element has a template attribute. */
-  TemplateInfo templateInfo = null;
+  TemplateInfo templateInfo;
+
+  /** List of loopVariable(s) (nested iterates) for parameters. */
+  List<String> params;
 
   /**
    * Whether code generators need to create a field to store a reference to this
@@ -202,7 +205,9 @@ class ElementInfo {
   // preserve the order of the input, but we'd need to be careful about our tree
   // traversal order.
   ElementInfo()
-      : attributes = new SplayTreeMap<String, AttributeInfo>(),
+      : templateInfo = null,
+        params = [],
+        attributes = new SplayTreeMap<String, AttributeInfo>(),
         events = new SplayTreeMap<String, List<EventInfo>>(),
         values = new SplayTreeMap<String, String>();
 
@@ -309,6 +314,7 @@ class TemplateInfo extends ElementInfo {
     elementId = elemInfo.elementId;
     elemField = elemInfo.elemField;
     fragmentChild = elemInfo.fragmentChild;
+    params = elemInfo.params;
     component = elemInfo.component;
     contentBinding = elemInfo.contentBinding;
     contentExpression = elemInfo.contentExpression;

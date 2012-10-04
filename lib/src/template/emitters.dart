@@ -100,16 +100,32 @@ class ElementFieldEmitter extends Emitter<ElementInfo> {
     var field = elemInfo.elemField;
     var id = elemInfo.elementId;
     if (queryFrom != null) {
+      // TODO(terry): Keep old template tags working.
       // TODO(jmesserly): we should be able to figure out if IDs match
       // statically.
       // Note: This code is more complex because it must handle the case
       // where the queryFrom node itself has the ID.
-      context.createdMethod.add('''
-        if ($queryFrom.id == "$id") {
-          $field = $queryFrom;
+      if (elemInfo.templateInfo == null) {
+        // In a nested interate?
+        if ((elemInfo is TemplateInfo) || elemInfo.params.length == 0 || elemInfo.templateInfo == null) {
+          context.createdMethod.add('''
+            if ($queryFrom.id == "$id") {
+              $field = $queryFrom;
+            } else {
+              $field = $queryFrom.query('#$id');
+            }''');
         } else {
-          $field = $queryFrom.query('#$id');
-        }''');
+          // In a nested iterate.
+          String callerParams = elemInfo.params.toString();
+          // Strip the brackets [ ].
+          callerParams = callerParams.substring(1, callerParams.length - 1);
+
+          context.createdMethod.add('''
+            $field = new Element.html(_fragment$field($callerParams));
+            $queryFrom.nodes.add($field);
+          ''');
+        }
+      }
     } else {
       context.createdMethod.add("$field = _root.query('#$id');");
     }
@@ -202,7 +218,15 @@ class DataBindingEmitter extends Emitter<ElementInfo> {
 
   /** Watchers for each data binding. */
   void emitInserted(Context context) {
-    var elemField = context.attachToChild ? "child${elemInfo.elemField}": elemInfo.elemField;
+    var elemField = elemInfo.elemField;
+/*
+    if (elemInfo.params.length > 0 || context.attachToChild) {
+      elemField = elemInfo.elemField;
+    } else {
+      elemField = "child${elemInfo.elemField}";
+    }
+*/
+    //elemField = context.attachToChild ? "child${elemInfo.elemField}": elemInfo.elemField;
 
     // stop-functions for watchers associated with data-bound attributes
     elemInfo.attributes.forEach((name, attrInfo) {
@@ -508,81 +532,111 @@ class ListEmitter extends Emitter<TemplateInfo> {
 /**
  * Emitter of an element lists like `<TD template iterate='item in items'>`.
  */
-class ListElementEmitter extends Emitter<TemplateInfo> {
-  final TemplateInfo parentInfo;
+class ListElementEmitter extends Emitter<ElementInfo> {
+  final ElementInfo parentInfo;
+  final ElementInfo childInfo;
   final CodePrinter childrenDeclarations;
   final CodePrinter childrenCreated;
   final CodePrinter childrenRemoved;
   final CodePrinter childrenInserted;
 
-  ListElementEmitter(Element elem, TemplateInfo info, TemplateInfo parent)
-      : parentInfo = parent,
-      childrenDeclarations = new CodePrinter(),
-      childrenCreated = new CodePrinter(),
-      childrenRemoved = new CodePrinter(),
-      childrenInserted = new CodePrinter(),
-      super(elem, info);
+  ListElementEmitter(Element elem, this.parentInfo, ElementInfo info, this.childInfo)
+      : childrenDeclarations = new CodePrinter(),
+        childrenCreated = new CodePrinter(),
+        childrenRemoved = new CodePrinter(),
+        childrenInserted = new CodePrinter(),
+        super(elem, info);
 
-  String get childElementName => 'child${elemInfo.idAsIdentifier}';
+  String get elementName => '${elemInfo.idAsIdentifier}';
 
   void emitDeclarations(Context context) {
     var id = elemInfo.idAsIdentifier;
+    var childId = childInfo.idAsIdentifier;
     context.declarations.add('''
         // Fields for template list '${elemInfo.elementId}'
-        Element _childTemplate$id;
-        WatcherDisposer _stopWatcher$id;
-        List<WatcherDisposer> _removeChild$id;
+        WatcherDisposer _stopWatcher$childId;
+        List<WatcherDisposer> _removeChild$childId = [];
     ''');
   }
 
   void emitCreated(Context context) {
+    String callerParams = elemInfo.params.toString();
+    // Strip the brackets [ ].
+    callerParams = callerParams.substring(1, callerParams.length - 1);
     var id = elemInfo.idAsIdentifier;
-    if (parentInfo == null) {
+    var childId = childInfo.idAsIdentifier;
+    if (parentInfo.templateInfo == null) {
       context.createdMethod.add('''
-          var ${id}_parent = new Element.html(_fragment$id());
+          var ${id}_parent = new Element.html(_fragment$id($callerParams));
           ${id}_parent.nodes.clear();
           $id.nodes.add(${id}_parent);
-          _removeChild$id = [];
           $id = $id.parent;
           $id.nodes.clear();
 
       ''');
     } else {
-      var parentId = parentInfo.idAsIdentifier;
-      context.createdMethod.add('''
-          _childTemplate$id = $id.clone(true);
-          _removeChild$id = [];
-          $id.nodes.clear();
-          child$parentId.nodes.clear();
-          $id = child$parentId;
-      ''');
+      var parentId = childInfo.idAsIdentifier;
+      if (!elemInfo.hasIterate) {
+//        if (!parentInfo.hasIterate) {
+//          context.createdMethod.add('''
+//            $id = new Element.html(_fragment$id($callerParams));
+//            _removeChild$id = [];
+//            ${parentId}_parent.nodes.add($id);
+//          ''');
+//        } else {
+//          context.createdMethod.add('''
+//            _removeChild$id = [];
+//          ''');
+//        }
+//      } else {
+        context.createdMethod.add('''
+            _childTemplate$id = $id.clone(true);
+            $id.nodes.clear();
+            child$parentId.nodes.clear();
+            $id = child$parentId;
+        ''');
+      }
     }
   }
 
   void emitInserted(Context context) {
-    var id = elemInfo.idAsIdentifier;
+    var parentId = elemInfo.idAsIdentifier;
+    var id = childInfo.idAsIdentifier;
+
+    // Compute the parameters and strip the brackets [ ].
+    String callerParams = childInfo.params.toString();
+    callerParams = callerParams.substring(1, callerParams.length - 1);
+
+    // Child already created?
+    String createChildren = childInfo.templateInfo != null ?
+        '''
+          $id = new Element.html(_fragment$id($callerParams));
+          ${id}.nodes.clear();
+          ${parentId}.nodes.add($id);
+        ''' : "";
+
     // TODO(jmesserly): this should use fine grained updates.
     // TODO(jmesserly): watcher should give us the list, not a boolean.
-    context.insertedMethod.add('''
-        _stopWatcher$id = watchAndInvoke(() => ${elemInfo.loopItems}, (e) {
-          $id.nodes.clear();
+    context.insertedMethod
+        .add('''
+        _stopWatcher$id = watchAndInvoke(() => ${elemInfo.templateInfo.loopItems}, (e) {
+          $parentId.nodes.clear();
           for (var remover in _removeChild$id) remover();
           _removeChild$id.clear();
-          for (var ${elemInfo.loopVariable} in ${elemInfo.loopItems}) {
-            var ${id}_parent = new Element.html(_fragment$id());
-            ${id}_parent.nodes.clear();
-            ${id}.nodes.add(${id}_parent);
-    ''');
+          for (var ${elemInfo.templateInfo.loopVariable} in ${elemInfo.templateInfo.loopItems}) {
+    ''')
+         .add(childrenDeclarations)
+         .add(createChildren);
+
+
 
     context.insertedMethod
-        .add(childrenDeclarations)
         .add(childrenCreated)
-        .add('$id.nodes.add($childElementName);')
         .add('// Attach listeners/watchers')
         .add(childrenInserted)
         .add('// Remember to unregister them')
         .add('_removeChild$id.add(() {')
-        .add('$childElementName.remove();')
+        .add('$parentId.remove();')
         .add(childrenRemoved)
         .add('});\n}\n});');
   }
@@ -599,7 +653,7 @@ class ListElementEmitter extends Emitter<TemplateInfo> {
   Context contextForChildren(Context c) {
     return new Context(
       childrenDeclarations, childrenCreated, childrenInserted, childrenRemoved,
-      queryFromElement: childElementName, attachToChild: parentInfo != null);
+      queryFromElement: elementName, attachToChild: childInfo != null);
   }
 }
 
@@ -609,13 +663,19 @@ class RecursiveHTMLEmitter extends TreeVisitor {
       "                                                                      ";
   final FileInfo _info;
   final CodePrinter initialPage;
-  final List<CodePrinter> htmlFragments;
+  /** Currently active HTML fragments. */
+  final List<CodePrinter> activeFragments;
+  /** Completed HTML fragments to emit. */
+  final List<CodePrinter> completedFragments;
   CodePrinter currPrinter;
   var parent;
   int indent;
 
   RecursiveHTMLEmitter(this._info)
-      : initialPage = new CodePrinter(), htmlFragments = [], indent = 0 {
+      : initialPage = new CodePrinter(),
+        activeFragments = [],
+        completedFragments = [],
+        indent = 0 {
     currPrinter = initialPage;
   }
 
@@ -639,16 +699,26 @@ class RecursiveHTMLEmitter extends TreeVisitor {
 
     CodePrinter prevFragment;
     if (elemInfo.fragmentChild) {
+      StringBuffer paramsBuilder = new StringBuffer();
+      for (var param in elemInfo.params) {
+        if (paramsBuilder.length > 0) {
+          paramsBuilder.add(", ");
+        }
+        paramsBuilder.add("var $param=''");
+      }
+      String paramsDef = (paramsBuilder.length > 0) ? "[$paramsBuilder]" : "";
+
       prevFragment = currPrinter;
       currPrinter = new CodePrinter();
-      currPrinter.add("String _fragment${elemInfo.elemField}() =>");
+      currPrinter.add("String _fragment${elemInfo.elemField}($paramsDef) =>");
       currPrinter.add(html);
 
-      var parentPrinter = (htmlFragments.length == 0) ?
-          initialPage : htmlFragments.last();
+      var parentPrinter = (activeFragments.length == 0) ?
+          initialPage : activeFragments.last();
+
       parentPrinter.add("$left'\${_fragment${elemInfo.elemField}()}'");
 
-      htmlFragments.add(currPrinter);
+      activeFragments.add(currPrinter);
     } else {
       initialPage.add(html);
       prevFragment = currPrinter;
@@ -666,6 +736,15 @@ class RecursiveHTMLEmitter extends TreeVisitor {
     // void elements don't have an end tag.
 //    if (voidElements.indexOf(elem.tagName) < 0) {
       currPrinter.add("$left'</${elem.tagName}>'");
+      if (currPrinter != initialPage) {
+        // Fragment is done, remove it from active fragment and place in our
+        // completed list.
+        var idx = activeFragments.indexOf(currPrinter);
+        if (idx != -1) {
+          var frag = activeFragments.removeAt(idx);
+          completedFragments.add(frag);
+        }
+      }
 //    }
 
     currPrinter = prevFragment;
@@ -686,12 +765,12 @@ class RecursiveHTMLEmitter extends TreeVisitor {
 
 
   String allHtmlCodeFragments() {
-    for (var codeFrag in htmlFragments) {
+    for (var codeFrag in completedFragments) {
       codeFrag.add(";");
     }
 
     StringBuffer allCode = new StringBuffer();
-    for (var codeFrag in htmlFragments) {
+    for (var codeFrag in completedFragments) {
       allCode.add(codeFrag.toString());
     }
 
@@ -760,9 +839,10 @@ class RecursiveEmitter extends TreeVisitor {
     } else if (elemInfo.hasIterate) {
       var listEmitter;
       if (elementIsTemplate) {
-        elemInfo = elemInfo.templateInfo;
-        var parentElemInfo = _info.elements[elem.parent].templateInfo;
-        listEmitter = new ListElementEmitter(elem.nodes[1], elemInfo, parentElemInfo);
+//        elemInfo = elemInfo.templateInfo;
+        var parentElemInfo = _info.elements[elem.parent];
+        var childElemInfo = _info.elements[elem.nodes[0]];
+        listEmitter = new ListElementEmitter(elem.nodes[0], parentElemInfo, elemInfo, childElemInfo);
         emitters.add(listEmitter);
         childContext = listEmitter.contextForChildren(_context);
       } else {

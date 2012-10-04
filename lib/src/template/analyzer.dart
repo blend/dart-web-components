@@ -49,12 +49,31 @@ class _Analyzer extends TreeVisitor {
   final FileInfo result;
   int _uniqueId = 0;
 
+  // TODO(terry): Need to submit another bug after checkin for DartEditor folks.
+  //              Commenting out the _iterateNesting declaration will not return
+  //              field no declared from DartA and the VM will return
+  // "Handle check failed: saw Function 'StackOverflowException.': constructor const. expected Instance"
+  //              Running the cmd line VM outside of the Editor returns no such
+  //              object error.
   /** Iterator nesting level. */
   int _iterateNesting = 0;
+
+  List<TemplateInfo> _nestedIterators = [];
 
   _Analyzer(this.result);
 
   void visitElement(Element node) {
+    // TODO(terry): Need mechanism to add whitespace not removed e.g., {sp},
+    //              {newline}, {tab}, etc.
+    // Remove all text nodes that have whitespace.
+    int numChildren = node.nodes.length - 1;
+    for (var i = numChildren; i >= 0; i--) {
+      Node child = node.nodes[i];
+      if (child.nodeType == Node.TEXT_NODE && child.value.trim().length == 0) {
+        child.remove();
+      }
+    }
+
     ElementInfo info = null;
     if (node.tagName == 'script') {
       // We already extracted script tags in previous phase.
@@ -81,9 +100,23 @@ class _Analyzer extends TreeVisitor {
     // Mark any children elements under an iterate at any depth.
     bool iterator = false;
     if (info.needsHtmlId) {
+      if (_nestedIterators.length > 0) {
+        // loop variables for each nested iterator.
+        for (var iterator in _nestedIterators) {
+          info.params.add(iterator.loopVariable);
+        }
+      }
+
       if (info.hasIterate) {
         _iterateNesting++;
         iterator = true;
+
+        // TODO(terry): Need to submit bug when I checkin this code.  Changing
+        //              the below line generates a wierd VM error from the editor
+        //              running cmd line VM generates no such method. Use line:
+        //
+        // _nestedIterators.add(info);
+        _nestedIterators.add(info is TemplateInfo ? info : info.templateInfo);
       }
       info.fragmentChild = _iterateNesting > 0;
     }
@@ -93,6 +126,7 @@ class _Analyzer extends TreeVisitor {
 
     // Was in an iterator.
     if (iterator) {
+      _nestedIterators.removeLast();
       _iterateNesting--;
     }
 
@@ -238,7 +272,13 @@ class _Analyzer extends TreeVisitor {
 
     var name = value.substring(0, colonIdx);
     value = value.substring(colonIdx + 1);
-    _addEvent(elemInfo, name, (elem, args) => '${value}($args)');
+    // TODO(terry): Method has a parameter; use that not the event's object.
+    //              Should have been parsing for parameters (e.g.Dart compiler).
+    if (value.contains("(")) {
+      _addEvent(elemInfo, name, (elem, args) => '${value}');
+    } else {
+      _addEvent(elemInfo, name, (elem, args) => '${value}($args)');
+    }
     return true;
   }
 
@@ -293,7 +333,9 @@ class _Analyzer extends TreeVisitor {
 
   void visitText(Text text) {
     var bindingRegex = const RegExp(r'{{(.*)}}');
-    if (!bindingRegex.hasMatch(text.value)) return;
+    if (!bindingRegex.hasMatch(text.value)) {
+      return;
+    }
 
     var parentElem = text.parent;
     ElementInfo info = result.elements[parentElem];
