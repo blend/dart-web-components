@@ -107,7 +107,7 @@ class ElementFieldEmitter extends Emitter<ElementInfo> {
       // where the queryFrom node itself has the ID.
       if (elemInfo.templateInfo == null) {
         // In a nested interate?
-        if ((elemInfo is TemplateInfo) || elemInfo.params.length == 0 || elemInfo.templateInfo == null) {
+        if (!elemInfo.fragmentChild) {
           context.createdMethod.add('''
             if ($queryFrom.id == "$id") {
               $field = $queryFrom;
@@ -115,7 +115,7 @@ class ElementFieldEmitter extends Emitter<ElementInfo> {
               $field = $queryFrom.query('#$id');
             }''');
         } else {
-          // In a nested iterate.
+          // In a nested iterate on any tag not template tag iterate.
           String callerParams = elemInfo.params.toString();
           // Strip the brackets [ ].
           callerParams = callerParams.substring(1, callerParams.length - 1);

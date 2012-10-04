@@ -118,7 +118,12 @@ class _Analyzer extends TreeVisitor {
         // _nestedIterators.add(info);
         _nestedIterators.add(info is TemplateInfo ? info : info.templateInfo);
       }
-      info.fragmentChild = _iterateNesting > 0;
+
+      // TODO(terry): Combine iterate on both template and element to work same
+      //              way.
+      // If fragmentChild is True in a nested interate and info is ElementInfo
+      // (implies template iterate on an element not template tag).
+      info.fragmentChild = (info is ElementInfo) && _iterateNesting > 0;
     }
 
     // Invoke super to visit children.
