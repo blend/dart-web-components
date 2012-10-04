@@ -38,6 +38,7 @@ class Square {
 }
 
 class Board {
+  String _winner = '';
   List<List<Square>> board;
 
   Board() : board = [
@@ -47,41 +48,37 @@ class Board {
   ];
 
   bool get won => winner != '';
-  
-  String get winner() {
-    String winner;
-    winner = _rowWinner();
-    if (winner == '') {
-      winner = _columnWinner();
-      if (winner == '') {
-        winner = _diagonalWinner();
+  String get winner => _winner;
+
+  void _checkWinner(int rowIdx, int squareIdx) {
+    _winner = _rowWinner(rowIdx, squareIdx);
+    if (_winner == '') {
+      _winner = _columnWinner(rowIdx, squareIdx);
+      if (_winner == '') {
+        _winner = _diagonalWinner(rowIdx, squareIdx);
       }
     }
-
-    return winner;
   }
 
-  String _rowWinner() {
-    for (var row in board) {
-      if ((row[0].value == row[1].value && row[0].value == row[2].value) &&
-          row[0].value != '') {
-        return row[0].value;
-      }
+  String _rowWinner(int rowIdx, int squareIdx) {
+    var row = board[rowIdx];
+    if ((row[0].value == row[1].value && row[0].value == row[2].value) &&
+        row[0].value != '') {
+      return row[0].value;
     }
     return '';
   }
 
-  String _columnWinner() {
-    for (int i = 0; i < 3; i++) {
-      if ((board[0][i].value == board[1][i].value &&
-          board[0][i].value == board[2][i].value) && board[0][i].value != '') {
-        return board[0][i].value;
-      }
+  String _columnWinner(int rowIdx, int squareIdx) {
+    if ((board[0][squareIdx].value == board[1][squareIdx].value &&
+         board[0][squareIdx].value == board[2][squareIdx].value) &&
+        board[0][squareIdx].value != '') {
+      return board[0][squareIdx].value;
     }
     return '';
   }
 
-  String _diagonalWinner() {
+  String _diagonalWinner(int rowIdx, int squareIdx) {
     if ((board[0][0].value == board[1][1].value &&
         board[0][0].value == board[2][2].value) && board[0][0].value != '') {
       return board[0][0].value;
@@ -96,6 +93,15 @@ class Board {
   void makeMove(square) {
     if (!won && square.value == '') {
       square.value = currentPlayer;
+      for (int rowIdx = 0; rowIdx < board.length; rowIdx++) {
+        var row = board[rowIdx];
+        for (int sqIdx = 0; sqIdx < row.length; sqIdx++) {
+          var sq = row[sqIdx];
+          if (square == sq) {
+            _checkWinner(rowIdx, sqIdx);
+          }
+        }
+      }
       currentPlayer = currentPlayer == 'X' ? 'O' : 'X';
     }
   }
@@ -107,6 +113,7 @@ class Board {
       }
     }
     currentPlayer = 'X';
+    _winner = '';
   }
 }
 
@@ -130,15 +137,6 @@ main() {
       </table>
     <span hidden="{{!gameBoard.won}}" style="padding-right:4px;">{{gameBoard.winner}} wins!</span>
     <a href="#"  data-action="click:gameBoard.reset()">Play Again</a>
-<!-- TODO(terry): Make the original work.
-    <ul>
-      <template iterate="row in gameBoard.board">
-          <template iterate="spot in row">
-            <li class="square {{_squareTaken(spot)}}" data-action="click:gameBoard.makeMove(spot)">{{spot.value}}</li>
-          </template>
-      </template>
-    </ul>
--->
     <template instantiate>
       <ul template iterate="row in gameBoard.board">
         <li style="padding-top:4px;padding-bottom:4px;" template iterate="spot in row">

@@ -954,6 +954,6 @@ class MainPageEmitter extends RecursiveEmitter {
           _context.createdMethod.formatString(1),
           _context.insertedMethod.formatString(1),
           htmlEmitter.allHtmlCodeFragments(),
-          intialPage)).formatString();
+          intialPage)).toString();
   }
 }
