@@ -624,6 +624,8 @@ class ListElementEmitter extends Emitter<ElementInfo> {
   }
 }
 
+// TODO(terry): Consider creating HTMLCodePrinter to eliminates _INDENTS.
+/** Emits any iterate or children or iterates as fragments. */
 class RecursiveHTMLEmitter extends TreeVisitor {
   const String _INDENTS =
       "                                                                        "
