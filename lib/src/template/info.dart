@@ -136,7 +136,6 @@ class ComponentInfo {
 
 /** Information extracted for each node in a template. */
 class ElementInfo {
-
   /** Id given to an element node, if any. */
   String elementId;
 
@@ -144,7 +143,11 @@ class ElementInfo {
   // TODO(sigmund): move this to Emitter?
   String elemField;
 
-  /** if true element is a fragment created with fragment function. */
+  // TODO(terry): Use for all iterates regardless if tag is template or not.
+  /**
+   * if true element is a fragment created with fragment function as part of
+   * iterate on a non-template tag.
+   */
   bool fragmentChild = false;
 
   /** Element has a template attribute. */
