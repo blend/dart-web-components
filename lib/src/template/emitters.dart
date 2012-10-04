@@ -511,7 +511,7 @@ class ListEmitter extends Emitter<TemplateInfo> {
 
 
 /**
- * Emitter of an element lists like `<TD template iterate='item in items'>`.
+ * Emitter of an element lists like `<td template iterate='item in items'>`.
  */
 class ListElementEmitter extends Emitter<ElementInfo> {
   final ElementInfo parentInfo;
@@ -521,7 +521,8 @@ class ListElementEmitter extends Emitter<ElementInfo> {
   final CodePrinter childrenRemoved;
   final CodePrinter childrenInserted;
 
-  ListElementEmitter(Element elem, this.parentInfo, ElementInfo info, this.childInfo)
+  ListElementEmitter(Element elem, this.parentInfo, ElementInfo info,
+      this.childInfo)
       : childrenDeclarations = new CodePrinter(),
         childrenCreated = new CodePrinter(),
         childrenRemoved = new CodePrinter(),
@@ -558,18 +559,6 @@ class ListElementEmitter extends Emitter<ElementInfo> {
     } else {
       var parentId = childInfo.idAsIdentifier;
       if (!elemInfo.hasIterate) {
-//        if (!parentInfo.hasIterate) {
-//          context.createdMethod.add('''
-//            $id = new Element.html(_fragment$id($callerParams));
-//            _removeChild$id = [];
-//            ${parentId}_parent.nodes.add($id);
-//          ''');
-//        } else {
-//          context.createdMethod.add('''
-//            _removeChild$id = [];
-//          ''');
-//        }
-//      } else {
         context.createdMethod.add('''
             _childTemplate$id = $id.clone(true);
             $id.nodes.clear();
@@ -596,20 +585,17 @@ class ListElementEmitter extends Emitter<ElementInfo> {
           ${parentId}.nodes.add($id);
         ''' : "";
 
-    // TODO(jmesserly): this should use fine grained updates.
-    // TODO(jmesserly): watcher should give us the list, not a boolean.
+    var loopItems = elemInfo.templateInfo.loopItems;
     context.insertedMethod
         .add('''
-        _stopWatcher$id = watchAndInvoke(() => ${elemInfo.templateInfo.loopItems}, (e) {
+        _stopWatcher$id = watchAndInvoke(() => ${loopItems}, (e) {
           $parentId.nodes.clear();
           for (var remover in _removeChild$id) remover();
           _removeChild$id.clear();
-          for (var ${elemInfo.templateInfo.loopVariable} in ${elemInfo.templateInfo.loopItems}) {
+          for (var ${elemInfo.templateInfo.loopVariable} in ${loopItems}) {
     ''')
          .add(childrenDeclarations)
          .add(createChildren);
-
-
 
     context.insertedMethod
         .add(childrenCreated)
@@ -714,7 +700,7 @@ class RecursiveHTMLEmitter extends TreeVisitor {
       parent = elem.parent;
     }
 
-    // void elements don't have an end tag.
+    // TODO(terry): Need to use void elements in html5lib don't have an end tag.
 //    if (voidElements.indexOf(elem.tagName) < 0) {
       currPrinter.add("$left'</${elem.tagName}>'");
       if (currPrinter != initialPage) {
@@ -820,10 +806,10 @@ class RecursiveEmitter extends TreeVisitor {
     } else if (elemInfo.hasIterate) {
       var listEmitter;
       if (elementIsTemplate) {
-//        elemInfo = elemInfo.templateInfo;
         var parentElemInfo = _info.elements[elem.parent];
         var childElemInfo = _info.elements[elem.nodes[0]];
-        listEmitter = new ListElementEmitter(elem.nodes[0], parentElemInfo, elemInfo, childElemInfo);
+        listEmitter = new ListElementEmitter(elem.nodes[0], parentElemInfo,
+            elemInfo, childElemInfo);
         emitters.add(listEmitter);
         childContext = listEmitter.contextForChildren(_context);
       } else {
