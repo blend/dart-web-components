@@ -6,8 +6,7 @@ library compile;
 
 import 'dart:coreimpl';
 import 'package:html5lib/dom.dart';
-import 'package:html5lib/html5parser.dart';
-import 'package:html5lib/tokenizer.dart';
+import 'package:html5lib/parser.dart';
 
 import 'analyzer.dart';
 import 'code_printer.dart';
@@ -19,22 +18,17 @@ import 'info.dart';
 import 'utils.dart';
 import 'world.dart';
 
-// TODO(jmesserly): move these things into html5lib's public api
-// This is for voidElements:
-import 'package:html5lib/src/constants.dart' as html5_constants;
-// This is for htmlEscapeMinimal:
-import 'package:html5lib/src/utils.dart' as html5_utils;
-
 
 Document parseHtml(String template, String sourcePath) {
-  var parser = new HTMLParser();
-  var document = parser.parse(new HTMLTokenizer(template));
+  var parser = new HtmlParser(template, generateSpans: true);
+  var document = parser.parse();
 
   // Note: errors aren't fatal in HTML (unless strict mode is on).
   // So just print them as warnings.
   for (var e in parser.errors) {
     world.warning('$sourcePath line ${e.line}:${e.column}: ${e.message}');
   }
+
   return document;
 }
 

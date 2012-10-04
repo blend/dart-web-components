@@ -14,6 +14,7 @@ ArgParser commandOptions() {
   args.addFlag('verbose', help: 'Display detail info', defaultsTo: false);
   args.addFlag('clean', help: 'Remove all generated files', defaultsTo: false);
   args.addFlag('dump', help: 'Dump AST', defaultsTo: false);
+  args.addFlag('no_whitespace', help: 'Strip all white space', defaultsTo: false);
   args.addFlag('suppress_warnings', help: 'Warnings not displayed',
       defaultsTo: true);
   args.addFlag('warnings_as_errors', help: 'Warning handled as errors',

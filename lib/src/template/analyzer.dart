@@ -10,6 +10,7 @@ library analyzer;
 
 import 'dart:coreimpl';
 import 'package:html5lib/dom.dart';
+import 'package:html5lib/dom_parsing.dart';
 
 import 'info.dart';
 import 'files.dart';
@@ -49,12 +50,6 @@ class _Analyzer extends TreeVisitor {
   final FileInfo result;
   int _uniqueId = 0;
 
-  // TODO(terry): Need to submit another bug after checkin for DartEditor folks.
-  //              Commenting out the _iterateNesting declaration will not return
-  //              field no declared from DartA and the VM will return
-  // "Handle check failed: saw Function 'StackOverflowException.': constructor const. expected Instance"
-  //              Running the cmd line VM outside of the Editor returns no such
-  //              object error.
   /** Iterator nesting level. */
   int _iterateNesting = 0;
 
@@ -63,14 +58,16 @@ class _Analyzer extends TreeVisitor {
   _Analyzer(this.result);
 
   void visitElement(Element node) {
-    // TODO(terry): Need mechanism to add whitespace not removed e.g., {sp},
-    //              {newline}, {tab}, etc.
+    // TODO(terry): Used as a switch today need to support text nodes with
+    //              whitespace.
     // Remove all text nodes that have whitespace.
-    int numChildren = node.nodes.length - 1;
-    for (var i = numChildren; i >= 0; i--) {
-      Node child = node.nodes[i];
-      if (child.nodeType == Node.TEXT_NODE && child.value.trim().length == 0) {
-        child.remove();
+    if (options.noWhitespace) {
+      int numChildren = node.nodes.length - 1;
+      for (var i = numChildren; i >= 0; i--) {
+        Node child = node.nodes[i];
+        if (child.nodeType == Node.TEXT_NODE && child.value.trim().length == 0) {
+          child.remove();
+        }
       }
     }
 
@@ -111,16 +108,10 @@ class _Analyzer extends TreeVisitor {
         _iterateNesting++;
         iterator = true;
 
-        // TODO(terry): Need to submit bug when I checkin this code.  Changing
-        //              the below line generates a wierd VM error from the editor
-        //              running cmd line VM generates no such method. Use line:
-        //
-        // _nestedIterators.add(info);
         _nestedIterators.add(info is TemplateInfo ? info : info.templateInfo);
       }
 
-      // TODO(terry): Combine iterate on both template and element to work same
-      //              way.
+      // TODO(terry): Combine iterate for template and element to work same.
       // If fragmentChild is True in a nested interate and info is ElementInfo
       // (implies template iterate on an element not template tag).
       info.fragmentChild = (info is ElementInfo) && _iterateNesting > 0;

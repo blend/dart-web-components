@@ -29,6 +29,8 @@ class CmdOptions {
   bool showWarnings;
   bool useColors;
 
+  bool noWhitespace = false;
+
   CmdOptions(ArgResults args, files) {
     warningsAsErrors = args['warnings_as_errors'];
     throwOnErrors = args['throw_on_errors'];
@@ -38,5 +40,6 @@ class CmdOptions {
     clean = args['clean'];
     showWarnings = args['suppress_warnings'];
     useColors = args['no_colors'];
+    noWhitespace = args['no_whitespace'];
   }
 }

@@ -9,7 +9,7 @@
 library emitters;
 
 import 'package:html5lib/dom.dart';
-
+import 'package:html5lib/dom_parsing.dart';
 import 'code_printer.dart';
 import 'codegen.dart' as codegen;
 import 'info.dart';
@@ -702,8 +702,7 @@ class RecursiveHTMLEmitter extends TreeVisitor {
       parent = elem.parent;
     }
 
-    // TODO(terry): Need to use void elements in html5lib don't have an end tag.
-//    if (voidElements.indexOf(elem.tagName) < 0) {
+    if (!isVoidElement(elem.tagName)) {
       currPrinter.add("$left'</${elem.tagName}>'");
       if (currPrinter != initialPage) {
         // Fragment is done, remove it from active fragment and place in our
@@ -714,7 +713,7 @@ class RecursiveHTMLEmitter extends TreeVisitor {
           completedFragments.add(frag);
         }
       }
-//    }
+    }
 
     currPrinter = prevFragment;
   }
