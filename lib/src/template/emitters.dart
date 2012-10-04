@@ -60,14 +60,12 @@ class Context {
   final CodePrinter insertedMethod;
   final CodePrinter removedMethod;
   final String queryFromElement;
-  final bool attachToChild;
 
   Context([CodePrinter declarations,
            CodePrinter createdMethod,
            CodePrinter insertedMethod,
            CodePrinter removedMethod,
-           this.queryFromElement,
-           this.attachToChild = false])
+           this.queryFromElement])
       : this.declarations = getOrCreatePrinter(declarations),
         this.createdMethod = getOrCreatePrinter(createdMethod),
         this.insertedMethod = getOrCreatePrinter(insertedMethod),
@@ -168,15 +166,6 @@ class EventListenerEmitter extends Emitter<ElementInfo> {
       }
     });
   }
-  /*
-  var elemField = context.attachToChild ? "child${elemInfo.elemField}": elemInfo.elemField;
-  elemInfo.events.forEach((name, eventInfo) {
-  var field = eventInfo.listenerField;
-  context.insertedMethod.add('''
-  $field = (_) {
-  ${eventInfo.action(elemField)};
-  */
-
 
   /** Emit feature-related statements in the `removed` method. */
   void emitRemoved(Context context) {
@@ -219,14 +208,6 @@ class DataBindingEmitter extends Emitter<ElementInfo> {
   /** Watchers for each data binding. */
   void emitInserted(Context context) {
     var elemField = elemInfo.elemField;
-/*
-    if (elemInfo.params.length > 0 || context.attachToChild) {
-      elemField = elemInfo.elemField;
-    } else {
-      elemField = "child${elemInfo.elemField}";
-    }
-*/
-    //elemField = context.attachToChild ? "child${elemInfo.elemField}": elemInfo.elemField;
 
     // stop-functions for watchers associated with data-bound attributes
     elemInfo.attributes.forEach((name, attrInfo) {
@@ -653,7 +634,7 @@ class ListElementEmitter extends Emitter<ElementInfo> {
   Context contextForChildren(Context c) {
     return new Context(
       childrenDeclarations, childrenCreated, childrenInserted, childrenRemoved,
-      queryFromElement: elementName, attachToChild: childInfo != null);
+      queryFromElement: elementName);
   }
 }
 
