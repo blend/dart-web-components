@@ -4,6 +4,7 @@
 
 library compiler;
 
+import 'dart:collection' show SplayTreeMap;
 import 'dart:coreimpl';
 import 'package:html5lib/dom.dart';
 import 'package:html5lib/parser.dart';
